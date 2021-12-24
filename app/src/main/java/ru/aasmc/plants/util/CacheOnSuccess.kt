@@ -30,7 +30,7 @@ import kotlinx.coroutines.sync.withLock
  *        cached value or throw a [CancellationException].
  */
 class CacheOnSuccess<T : Any>(
-    private val onErrorFallBack: (suspend () -> T)? = null,
+    private val onErrorFallback: (suspend () -> T)? = null,
     private val block: suspend () -> T
 ) {
     private val mutex = Mutex()
@@ -107,7 +107,7 @@ class CacheOnSuccess<T : Any>(
                 throw t
             }
             // return fallback if provided
-            onErrorFallBack?.let { fallback -> return fallback() }
+            onErrorFallback?.let { fallback -> return fallback() }
 
             // if we get were the error fallback didn't provide a fallback result, so
             // throw the exception to the caller
