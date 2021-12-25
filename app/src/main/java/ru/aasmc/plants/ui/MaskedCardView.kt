@@ -28,6 +28,7 @@ class MaskedCardView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         rectF.right = w.toFloat()
         rectF.bottom = h.toFloat()
+        pathProvider.calculatePath(shapeAppearance, 1f, rectF, path)
         super.onSizeChanged(w, h, oldw, oldh)
     }
 

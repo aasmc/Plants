@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/main_fragment"
-        android:name="com.example.android.advancedcoroutines.ui.PlantListFragment"
+        android:name="ru.aasmc.plants.ui.PlantListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

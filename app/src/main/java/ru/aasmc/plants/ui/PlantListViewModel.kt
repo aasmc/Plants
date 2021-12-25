@@ -58,7 +58,7 @@ class PlantListViewModel internal constructor(
     /**
      * Clear the current filter of this plants list.
      */
-    private fun clearGrowZoneNumber() {
+    fun clearGrowZoneNumber() {
         growZone.value = NoGrowZone
         launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
     }

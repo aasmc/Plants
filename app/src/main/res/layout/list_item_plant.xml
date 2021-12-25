@@ -21,7 +21,7 @@
     <data>
         <variable
             name="plant"
-            type="ru.aasmc.plants.model.Plant"/>
+            type="ru.aasmc.plants.data.model.Plant"/>
     </data>
 
     <ru.aasmc.plants.ui.MaskedCardView
