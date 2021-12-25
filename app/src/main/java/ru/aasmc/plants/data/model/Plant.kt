@@ -1,4 +1,4 @@
-package ru.aasmc.plants.model
+package ru.aasmc.plants.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

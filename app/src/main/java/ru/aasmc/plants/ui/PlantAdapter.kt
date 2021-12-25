@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.aasmc.plants.databinding.ListItemPlantBinding
-import ru.aasmc.plants.model.Plant
+import ru.aasmc.plants.data.model.Plant
 
 class PlantAdapter : ListAdapter<Plant, RecyclerView.ViewHolder>(PLANT_COMPARATOR) {
 
