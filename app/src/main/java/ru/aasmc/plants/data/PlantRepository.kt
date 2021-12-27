@@ -7,7 +7,7 @@ import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import ru.aasmc.plants.data.cache.PlantDao
 import ru.aasmc.plants.data.model.GrowZone
@@ -45,6 +45,34 @@ class PlantRepository private constructor(
 
     val plantsFlow: Flow<List<Plant>>
         get() = plantDao.getPlantsFlow()
+            // when the result of customSortFlow is available
+            // this will combine it with the latest value form
+            // the flow above. thus, as long as both plants
+            // sortOrder have an initial value (their flow
+            // has emitted at leas one value), any change
+            // to either plants or sortOrder will call
+            // plants.applySort(sortOrder).
+            .combine(customSortFlow) { plants, sortOrder ->
+                plants.applySort(sortOrder)
+            }
+            // The operator flowOn launches a new coroutine to collect the
+            // flow above it and introduces a buffer to write the results.
+            // You can control the buffer with more operators, such as
+            // conflate which says to store only the last value produced in the buffer.
+            .flowOn(defaultDispatcher)
+            // Conflates flow emissions via conflated channel and runs collector
+            // in a separate coroutine. The effect of this is that emitter is never
+            // suspended due to a slow collector, but collector always gets the most
+            // recent value emitted.
+            .conflate()
+
+    /**
+     * Defines a Flow that, when collected, will call getOrAwait and emit the
+     * sort order.
+     */
+    private val customSortFlow = flow {
+        emit(plantsListSortOrderCache.getOrAwait())
+    }
 
     /**
      * Fetches the custom sort order from the network and then caches it in memory.
