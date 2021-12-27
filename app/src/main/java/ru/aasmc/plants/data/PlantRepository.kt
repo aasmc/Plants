@@ -103,7 +103,7 @@ class PlantRepository private constructor(
         }
 
     /**
-     * Fetch a list of [Plant]s from the db, that matches a goven [GrowZone].
+     * Fetch a list of [Plant]s from the db, that matches a given [GrowZone].
      * Returns a LiveData-wrapped List of Plants.
      */
     fun getPlantsWithGrowZone(growZone: GrowZone): LiveData<List<Plant>> =
@@ -117,6 +117,11 @@ class PlantRepository private constructor(
 
     fun getPlantsWithGrowZoneFlow(growZone: GrowZone): Flow<List<Plant>> {
         return plantDao.getPlantsWithGrowZoneNumberFlow(growZone.number)
+            .map { plantList ->
+                val sortOrderFromNetwork = plantsListSortOrderCache.getOrAwait()
+                val nextValue = plantList.applyMainSafeSort(sortOrderFromNetwork)
+                nextValue
+            }
     }
 
     /**
