@@ -42,9 +42,15 @@ class PlantListViewModel internal constructor(
         }
     }
 
+    val plantsUsingFlow: LiveData<List<Plant>> =
+        plantRepository.plantsFlow.asLiveData()
+
     init {
         // when creating a new ViewModel, clear the grow zone and perform any related updates.
         clearGrowZoneNumber()
+
+        // fetch the full plant list
+        launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
     }
 
     /**

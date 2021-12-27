@@ -1,10 +1,14 @@
 package ru.aasmc.plants.data
 
+import androidx.annotation.AnyThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import ru.aasmc.plants.data.cache.PlantDao
 import ru.aasmc.plants.data.model.GrowZone
 import ru.aasmc.plants.data.model.Plant
@@ -39,6 +43,9 @@ class PlantRepository private constructor(
         })
     }
 
+    val plantsFlow: Flow<List<Plant>>
+        get() = plantDao.getPlantsFlow()
+
     /**
      * Fetches the custom sort order from the network and then caches it in memory.
      * Falls back to empty list if there's a network error.
@@ -61,16 +68,27 @@ class PlantRepository private constructor(
         }
     }
 
+    @AnyThread
+    suspend fun List<Plant>.applyMainSafeSort(customSortOrder: List<String>) =
+        withContext(defaultDispatcher) {
+            this@applyMainSafeSort.applySort(customSortOrder)
+        }
+
     /**
      * Fetch a list of [Plant]s from the db, that matches a goven [GrowZone].
      * Returns a LiveData-wrapped List of Plants.
      */
-    fun getPlantsWithGrowZone(growZone: GrowZone): LiveData<List<Plant>> = liveData {
-        val plantsGrowZoneLiveData = plantDao.getPlantsWithGrowZoneNumber(growZone.number)
-        val customSortOrder = plantsListSortOrderCache.getOrAwait()
-        emitSource(plantsGrowZoneLiveData.map { plantList ->
-            plantList.applySort(customSortOrder)
-        })
+    fun getPlantsWithGrowZone(growZone: GrowZone): LiveData<List<Plant>> =
+        plantDao.getPlantsWithGrowZoneNumber(growZone.number)
+            .switchMap { plantList ->
+                liveData {
+                    val customSortOrder = plantsListSortOrderCache.getOrAwait()
+                    emit(plantList.applyMainSafeSort(customSortOrder))
+                }
+            }
+
+    fun getPlantsWithGrowZoneFlow(growZone: GrowZone): Flow<List<Plant>> {
+        return plantDao.getPlantsWithGrowZoneNumberFlow(growZone.number)
     }
 
     /**
