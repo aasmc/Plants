@@ -1,7 +1,10 @@
 package ru.aasmc.plants.ui
 
 import androidx.lifecycle.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import ru.aasmc.plants.data.PlantRepository
 import ru.aasmc.plants.data.model.GrowZone
@@ -42,8 +45,24 @@ class PlantListViewModel internal constructor(
         }
     }
 
-    val plantsUsingFlow: LiveData<List<Plant>> =
-        plantRepository.plantsFlow.asLiveData()
+    /**
+     * A thread-safe flow holder that keeps only the last value it was given.
+     */
+    private val growZoneFlow = MutableStateFlow<GrowZone>(NoGrowZone)
+
+    /**
+     * FlatMapLatest - > whenever the growZone changes its value, this lambda will be
+     * applied and it must return a Flow.
+     */
+    @ExperimentalCoroutinesApi
+    val plantsUsingFlow: LiveData<List<Plant>> = growZoneFlow.flatMapLatest { growZone ->
+        if (growZone == NoGrowZone) {
+            plantRepository.plantsFlow
+        } else {
+            plantRepository.getPlantsWithGrowZoneFlow(growZone)
+        }
+    }.asLiveData()
+
 
     init {
         // when creating a new ViewModel, clear the grow zone and perform any related updates.
@@ -58,7 +77,8 @@ class PlantListViewModel internal constructor(
      */
     fun setGrowZoneNumber(num: Int) {
         growZone.value = GrowZone(num)
-        launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
+        growZoneFlow.value = GrowZone(num)
+        launchDataLoad { plantRepository.tryUpdateRecentPlantsForGrowZoneCache(GrowZone(num)) }
     }
 
     /**
@@ -66,6 +86,7 @@ class PlantListViewModel internal constructor(
      */
     fun clearGrowZoneNumber() {
         growZone.value = NoGrowZone
+        growZoneFlow.value = NoGrowZone
         launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
     }
 
