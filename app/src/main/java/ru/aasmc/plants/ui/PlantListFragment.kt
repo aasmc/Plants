@@ -68,7 +68,7 @@ class PlantListFragment : Fragment() {
             if (isFiltered()) {
                 clearGrowZoneNumber()
             } else {
-                setGrowZoneNumber(0)
+                setGrowZoneNumber(9)
             }
         }
     }
